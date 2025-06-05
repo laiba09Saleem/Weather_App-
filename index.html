@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather Forecast</h1>
+        <form id="weather-form">
+            <input type="text" id="city-input" placeholder="Enter city name" required>
+            <button type="submit">Get Weather</button>
+        </form>
+        
+        <div id="loading" style="display: none;">Loading...</div>
+        <div id="error-message" style="display: none; color: red;"></div>
+        
+        <div id="weather-result" style="display: none;">
+            <h2 id="location"></h2>
+            <div class="current-weather">
+                <div class="weather-main">
+                    <img id="weather-icon" src="" alt="Weather icon">
+                    <span id="temperature"></span>
+                    <span id="weather-desc"></span>
+                </div>
+                <div class="weather-details">
+                    <p>Feels like: <span id="feels-like"></span></p>
+                    <p>Humidity: <span id="humidity"></span>%</p>
+                    <p>Wind: <span id="wind-speed"></span> km/h</p>
+                    <p>Pressure: <span id="pressure"></span> hPa</p>
+                    <p>Sunrise: <span id="sunrise"></span></p>
+                    <p>Sunset: <span id="sunset"></span></p>
+                </div>
+            </div>
+            
+            <h3>5-Day Forecast</h3>
+            <div id="forecast-container"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('weather-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const city = document.getElementById('city-input').value.trim();
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('weather-result').style.display = 'none';
+            
+            fetch('/get_weather', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `city=${encodeURIComponent(city)}`
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                // Update current weather
+                document.getElementById('location').textContent = `${data.city}, ${data.country}`;
+                document.getElementById('temperature').textContent = `${data.temp}°C`;
+                document.getElementById('weather-desc').textContent = data.description;
+                document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+                document.getElementById('feels-like').textContent = `${data.feels_like}°C`;
+                document.getElementById('humidity').textContent = data.humidity;
+                document.getElementById('wind-speed').textContent = data.wind_speed;
+                document.getElementById('pressure').textContent = data.pressure;
+                document.getElementById('sunrise').textContent = data.sunrise;
+                document.getElementById('sunset').textContent = data.sunset;
+                
+                // Update forecast
+                const forecastContainer = document.getElementById('forecast-container');
+                forecastContainer.innerHTML = '';
+                
+                data.forecast.forEach(day => {
+                    const forecastItem = document.createElement('div');
+                    forecastItem.className = 'forecast-item';
+                    forecastItem.innerHTML = `
+                        <h4>${day.day_name}</h4>
+                        <img src="https://openweathermap.org/img/wn/${day.icon}.png" alt="${day.description}">
+                        <p>${day.description}</p>
+                        <p>H: ${day.max_temp}°C L: ${day.min_temp}°C</p>
+                    `;
+                    forecastContainer.appendChild(forecastItem);
+                });
+                
+                document.getElementById('weather-result').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none';
+                const errorElement = document.getElementById('error-message');
+                
+                let errorMsg = 'Failed to fetch weather data. Please try again.';
+                
+                if (error && error.error) {
+                    const errorText = error.error.toLowerCase();
+                    if (errorText.includes('city not found')) {
+                        errorMsg = 'City not found. Please check the spelling and try again.';
+                    } else if (errorText.includes('invalid api key')) {
+                        errorMsg = 'Service temporarily unavailable. Please try again later.';
+                    } else if (errorText.includes('failed to fetch')) {
+                        errorMsg = 'Network error. Please check your internet connection.';
+                    } else {
+                        errorMsg = error.error;
+                    }
+                }
+                
+                errorElement.textContent = errorMsg;
+                errorElement.style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
