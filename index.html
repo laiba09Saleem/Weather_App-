@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Forecast Pro</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -78,25 +78,34 @@
         
         async function getWeatherData(city) {
             try {
-                // Fetch current weather
+                // Show loading state
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('city-input').disabled = true;
+                document.querySelector('button[type="submit"]').disabled = true;
+                
+                // Fetch current weather (using HTTPS)
                 const currentResponse = await fetch(
-                    `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${API_KEY}&units=metric`
+                    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`
                 );
-                const currentData = await currentResponse.json();
                 
                 if (!currentResponse.ok) {
-                    throw new Error(currentData.message || 'Failed to fetch weather data');
+                    const errorData = await currentResponse.json();
+                    throw new Error(errorData.message || 'Failed to fetch current weather data');
                 }
                 
-                // Fetch forecast
+                const currentData = await currentResponse.json();
+                
+                // Fetch forecast (using HTTPS)
                 const forecastResponse = await fetch(
-                    `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${API_KEY}&units=metric`
+                    `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`
                 );
-                const forecastData = await forecastResponse.json();
                 
                 if (!forecastResponse.ok) {
-                    throw new Error(forecastData.message || 'Failed to fetch forecast data');
+                    const errorData = await forecastResponse.json();
+                    throw new Error(errorData.message || 'Failed to fetch forecast data');
                 }
+                
+                const forecastData = await forecastResponse.json();
                 
                 return {
                     current: currentData,
@@ -105,6 +114,10 @@
             } catch (error) {
                 console.error('Error fetching weather data:', error);
                 throw error;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('city-input').disabled = false;
+                document.querySelector('button[type="submit"]').disabled = false;
             }
         }
         
@@ -155,7 +168,7 @@
                 });
             }
             
-            return processed.slice(0, 5); // Return next 5 days
+            return processed.slice(1, 6); // Return next 5 days (skip today)
         }
         
         document.getElementById('weather-form').addEventListener('submit', async function(e) {
@@ -167,7 +180,6 @@
                 return;
             }
             
-            document.getElementById('loading').style.display = 'block';
             document.getElementById('error-message').style.display = 'none';
             document.getElementById('weather-result').style.display = 'none';
             
@@ -208,10 +220,8 @@
                     forecastContainer.appendChild(forecastItem);
                 });
                 
-                document.getElementById('loading').style.display = 'none';
                 document.getElementById('weather-result').style.display = 'block';
             } catch (error) {
-                document.getElementById('loading').style.display = 'none';
                 showError(getUserFriendlyError(error.message));
             }
         });
@@ -228,11 +238,17 @@
                 return 'City not found. Please check the spelling and try again.';
             } else if (error.includes('invalid api key')) {
                 return 'Service temporarily unavailable. Please try again later.';
-            } else if (error.includes('failed to fetch')) {
+            } else if (error.includes('failed to fetch') || error.includes('network error')) {
                 return 'Network error. Please check your internet connection.';
             }
             return 'Failed to fetch weather data. Please try again.';
         }
+
+        // Load weather for default city on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('city-input').value = 'London';
+            document.getElementById('weather-form').dispatchEvent(new Event('submit'));
+        });
     </script>
 </body>
 </html>
