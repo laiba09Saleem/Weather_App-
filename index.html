@@ -3,40 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather App</title>
+    <title>Weather Forecast Pro</title>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Weather Forecast</h1>
+        <div class="header">
+            <h1>Weather Forecast Pro</h1>
+        </div>
+        
         <form id="weather-form">
             <input type="text" id="city-input" placeholder="Enter city name" required>
-            <button type="submit">Get Weather</button>
+            <button type="submit"><i class="fas fa-search"></i> Search</button>
         </form>
         
-        <div id="loading" style="display: none;">Loading...</div>
-        <div id="error-message" style="display: none; color: red;"></div>
+        <div id="loading" style="display: none;">
+            <i class="fas fa-spinner fa-spin"></i> Loading weather data...
+        </div>
+        
+        <div id="error-message" style="display: none;"></div>
         
         <div id="weather-result" style="display: none;">
-            <h2 id="location"></h2>
+            <h2 id="location" class="location-header"></h2>
+            
             <div class="current-weather">
                 <div class="weather-main">
-                    <img id="weather-icon" src="" alt="Weather icon">
-                    <span id="temperature"></span>
-                    <span id="weather-desc"></span>
+                    <div class="weather-icon-container">
+                        <img id="weather-icon" src="" alt="Weather icon">
+                    </div>
+                    <div class="weather-meta">
+                        <span id="temperature"></span>
+                        <span id="weather-desc"></span>
+                    </div>
                 </div>
+                
                 <div class="weather-details">
-                    <p>Feels like: <span id="feels-like"></span></p>
-                    <p>Humidity: <span id="humidity"></span>%</p>
-                    <p>Wind: <span id="wind-speed"></span> km/h</p>
-                    <p>Pressure: <span id="pressure"></span> hPa</p>
-                    <p>Sunrise: <span id="sunrise"></span></p>
-                    <p>Sunset: <span id="sunset"></span></p>
+                    <div class="weather-detail">
+                        <i class="fas fa-temperature-low"></i>
+                        <p>Feels like: <span id="feels-like"></span></p>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-tint"></i>
+                        <p>Humidity: <span id="humidity"></span>%</p>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-wind"></i>
+                        <p>Wind: <span id="wind-speed"></span> km/h</p>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <p>Pressure: <span id="pressure"></span> hPa</p>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-sun"></i>
+                        <p>Sunrise: <span id="sunrise"></span></p>
+                    </div>
+                    <div class="weather-detail">
+                        <i class="fas fa-moon"></i>
+                        <p>Sunset: <span id="sunset"></span></p>
+                    </div>
                 </div>
             </div>
             
-            <h3>5-Day Forecast</h3>
+            <h3 class="forecast-header">5-Day Forecast</h3>
             <div id="forecast-container"></div>
         </div>
     </div>
@@ -66,11 +98,13 @@
             .then(data => {
                 document.getElementById('loading').style.display = 'none';
                 
-                // Update current weather
+                // Update location
                 document.getElementById('location').textContent = `${data.city}, ${data.country}`;
+                
+                // Update current weather
                 document.getElementById('temperature').textContent = `${data.temp}°C`;
                 document.getElementById('weather-desc').textContent = data.description;
-                document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+                document.getElementById('weather-icon').src = `https://openweathermap.org/img/wn/${data.icon}@4x.png`;
                 document.getElementById('feels-like').textContent = `${data.feels_like}°C`;
                 document.getElementById('humidity').textContent = data.humidity;
                 document.getElementById('wind-speed').textContent = data.wind_speed;
@@ -87,9 +121,9 @@
                     forecastItem.className = 'forecast-item';
                     forecastItem.innerHTML = `
                         <h4>${day.day_name}</h4>
-                        <img src="https://openweathermap.org/img/wn/${day.icon}.png" alt="${day.description}">
+                        <img src="https://openweathermap.org/img/wn/${day.icon}@2x.png" alt="${day.description}">
                         <p>${day.description}</p>
-                        <p>H: ${day.max_temp}°C L: ${day.min_temp}°C</p>
+                        <p class="forecast-temp">H: ${day.max_temp}°C L: ${day.min_temp}°C</p>
                     `;
                     forecastContainer.appendChild(forecastItem);
                 });
