@@ -6,7 +6,7 @@ A modern, responsive weather application built with Flask and OpenWeatherMap API
 
 | Desktop View | Mobile View |
 |--------------|-------------|
-| ![Desktop](screenshots/desktop.png) | ![Mobile](screenshots/mobile.png) |
+| ![Desktop](Weather_App.png) | ![Mobile](Weather_App (Mobile).png) |
 
 ## Live Demo 🌐
 
